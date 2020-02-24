@@ -2,6 +2,7 @@ import spacy
 from spacy.lang.de import German
 from spacy.lang.en import English
 from spacy.lang.zh import Chinese
+from spacy.matcher import Matcher
 
 
 #Lexical Attributes
@@ -53,5 +54,52 @@ doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
 for ent in doc.ents:
     print(ent.text, ent.label_)
 
+print("\n\n")
+print(spacy.explain('GPE'))
+print(spacy.explain('NNP'))
+print(spacy.explain('dobj'))
 
+def print_matched_span(doc):
+    matches = matcher(doc)
+    for match_id, start, end in matches:
+        # Get the matched span
+        matched_span = doc[start:end]
+        print(matched_span.text)
+
+print("\n\n")
+matcher = Matcher(nlp.vocab)
+pattern = [{'TEXT': 'iPhone'}, {'TEXT': 'X'}]
+matcher.add('IPHONE_PATTERN', None, pattern)
+doc = nlp("New iPhone X release date leaked")
+print_matched_span(doc)
+
+pattern = [
+    {'IS_DIGIT': True},
+    {'LOWER': 'fifa'},
+    {'LOWER': 'world'},
+    {'LOWER': 'cup'},
+    {'IS_PUNCT': True}
+]
+
+matcher.add('FIFA_PATTERN', None, pattern)
+doc = nlp("2018 FIFA World Cup: France won!")
+print_matched_span(doc)
+
+
+pattern = [
+    {'LEMMA': 'love', 'POS': 'VERB'},
+    {'POS': 'NOUN'}
+]
+matcher.add('LOVE_PATTERN', None, pattern)
+doc = nlp("I loved dogs but now I love cats more.")
+print_matched_span(doc)
+
+pattern = [
+    {'LEMMA': 'buy'},
+    {'POS': 'DET', 'OP': '?'},  # optional: match 0 or 1 times
+    {'POS': 'NOUN'}
+]
+matcher.add('BUY_PATTERN', None, pattern)
+doc = nlp("I bought a smartphone. Now I'm buying apps.")
+print_matched_span(doc)
 
